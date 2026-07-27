@@ -1,0 +1,52 @@
+# Libraries: computer vision, ML, 
+
+# Area ---------- (A)
+# img = (User inputs photo)
+#Likelihood of bodypart:
+    # Calculate body part likelihood of photo
+    # Confirm w/ user (Y/N)
+    # if Y:
+        #run follow up
+    # if N: 
+        #ask user which body part
+        #run follow up
+#follow up:
+    #Any other photos?
+        #if Y:
+             #run Area
+        #if N:
+            #move onto Intensity 
+# Determine Area calc (take img classification body part)
+    # Head/Neck = +9%
+    # Upper limb = +9%/each
+    # Anterior trunk = +18%
+    # Back = + 18%
+    # Genitals = + 1%
+    # max = 100% (AREA)
+
+#Intensity ----------- (B)
+#take img(s) - catagorize as image 1, 2, 3...
+#insert Google Teachable machine code here 
+# select representitive image (1), rank: 
+    # redness
+    # swelling
+    # oozing 
+    # scratch
+    # skin thickening
+    # dryness
+# add up Rank Severity (max 18) (INTESNITY)
+
+#Subjective Symptms: --------- (C) (Max 20)
+#Sleepiness: (0-10)
+#Itchiness: (0-10)
+
+#Total score: -------------
+# A/5 + 7B/2 + C  = Total
+# if Total between x-x
+    # Minor 
+#elif total between x-x:
+    # moderate
+#elif total between x- x:
+    #severe
+#else: 
+    #unable to calculate 
