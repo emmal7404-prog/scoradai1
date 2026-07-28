@@ -17,15 +17,7 @@ MODEL_NAME = "llama3.2-vision"
 
 # Prompt requesting strict numerical grading for SCORAD factors
 PROMPT = """
-You are a vision classifier. Analyze this skin image for SCORAD factors.
-Grade each factor on a scale from 0 (none) to 3 (severe):
-- redness
-- oozing
-- dryness
-
-Respond STRICTLY with a valid JSON object only. Do NOT include markdown blocks, text, or explanations.
-Example output format:
-{"redness": 1, "oozing": 0, "dryness": 2}
+You are grading SCORAD erythema. Look ONLY at redness. Ignore: - oozing - crusting - scratching - dryness - scaling - lichenification - skin thickness - background - lighting - normal skin pigmentation Score: 0 = no redness 1 = mild faint redness 2 = moderate obvious redness 3 = severe intense redness Return only: 0, 1, 2, or 3.
 """
 
 
