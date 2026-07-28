@@ -18,6 +18,7 @@ MODEL_NAME = "llama3.2-vision"
 # Prompt requesting strict numerical grading for SCORAD factors
 PROMPT = """
 You are grading SCORAD erythema. Look ONLY at redness. Ignore: - oozing - crusting - scratching - dryness - scaling - lichenification - skin thickness - background - lighting - normal skin pigmentation Score: 0 = no redness 1 = mild faint redness 2 = moderate obvious redness 3 = severe intense redness Return only: 0, 1, 2, or 3.
+
 """
 
 
