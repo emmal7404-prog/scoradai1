@@ -6,19 +6,49 @@ import ollama
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
-# Path to your extracted Kaggle dataset
+# Update this to match your local dataset folder path
 INPUT_FOLDER = r"C:\Users\codin\Downloads\archive (1)\kaggle\train\2. Ekzama"
 
-# Target folder where sorted images will be copied
+# Output folder for sorted Teachable Machine classes
 OUTPUT_FOLDER = "./teachable_machine_dataset"
 
-# AI Model settings (llama3.2-vision or moondream)
+# Ollama vision model
 MODEL_NAME = "llama3.2-vision"
 
-# Prompt requesting strict numerical grading for SCORAD factors
+# System Prompt with strict Erythema (Redness) rules
 PROMPT = """
-You are grading SCORAD erythema. Look ONLY at redness. Ignore: - oozing - crusting - scratching - dryness - scaling - lichenification - skin thickness - background - lighting - normal skin pigmentation Score: 0 = no redness 1 = mild faint redness 2 = moderate obvious redness 3 = severe intense redness Return only: 0, 1, 2, or 3.
+You are an expert dermatological vision classifier. Analyze this skin image for all 6 SCORAD intensity factors.
+Grade each factor on a scale from 0 (absent/none) to 3 (severe):
+- redness
+- swelling
+- oozing_crusting
+- scratch_marks
+- skin_thickening
+- dryness
 
+CRITICAL EVALUATION RULE FOR REDNESS (ERYTHEMA):
+When grading 'redness', look ONLY at redness. 
+Ignore:
+- oozing
+- crusting
+- scratching
+- dryness
+- scaling
+- lichenification
+- skin thickness
+- background
+- lighting
+- normal skin pigmentation
+
+Score criteria for redness:
+0 = no redness
+1 = mild faint redness
+2 = moderate obvious redness
+3 = severe intense redness
+
+Respond STRICTLY with a valid JSON object only. Do NOT include markdown code blocks, extra text, or explanations.
+Example output format:
+{"redness": 2, "swelling": 1, "oozing_crusting": 0, "scratch_marks": 1, "skin_thickening": 0, "dryness": 2}
 """
 
 
@@ -32,7 +62,7 @@ def process_images():
         )
         return
 
-    # Find all image files
+    # Filter for image files
     image_files = [
         f
         for f in os.listdir(INPUT_FOLDER)
@@ -41,17 +71,19 @@ def process_images():
     total_files = len(image_files)
 
     if total_files == 0:
-        print(f"⚠️ No PNG/JPG images found in '{INPUT_FOLDER}'.")
+        print(f"⚠️ No images found in '{INPUT_FOLDER}'.")
         return
 
-    print(f"🚀 Starting dataset sorting for {total_files} images using Ollama...\n")
+    print(
+        f"🚀 Starting sorting for {total_files} images using customized SCORAD prompt...\n"
+    )
 
     for index, filename in enumerate(image_files, 1):
         filepath = os.path.join(INPUT_FOLDER, filename)
         print(f"[{index}/{total_files}] Processing: {filename}...")
 
         try:
-            # Query local Ollama vision model
+            # Query local Ollama model
             response = ollama.chat(
                 model=MODEL_NAME,
                 messages=[
@@ -63,14 +95,14 @@ def process_images():
                 ],
             )
 
-            # Clean and parse JSON response
+            # Sanitize and parse JSON response
             raw_text = response["message"]["content"].strip()
             clean_text = (
                 raw_text.replace("```json", "").replace("```", "").strip()
             )
             scores = json.loads(clean_text)
 
-            # Copy image into factor and severity subfolders
+            # Copy image into category and severity subfolders
             for factor, severity in scores.items():
                 target_folder = os.path.join(
                     OUTPUT_FOLDER, str(factor), f"severity_{severity}"
@@ -81,12 +113,12 @@ def process_images():
             print(f"   ✅ Sorted: {scores}")
 
         except json.JSONDecodeError:
-            print(f"   ⚠️ Invalid JSON response for {filename}")
+            print(f"   ⚠️ Invalid JSON format from model for {filename}")
         except Exception as e:
             print(f"   ❌ Error processing {filename}: {e}")
 
     print(
-        f"\n🎉 Finished! Sorted images are in: '{os.path.abspath(OUTPUT_FOLDER)}'"
+        f"\n🎉 Done sorting! All images are categorized in: '{os.path.abspath(OUTPUT_FOLDER)}'"
     )
 
 
