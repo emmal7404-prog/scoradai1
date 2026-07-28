@@ -26,25 +26,6 @@ Grade each factor on a scale from 0 (absent/none) to 3 (severe):
 - skin_thickening
 - dryness
 
-CRITICAL EVALUATION RULE FOR REDNESS (ERYTHEMA):
-When grading 'redness', look ONLY at redness. 
-Ignore:
-- oozing
-- crusting
-- scratching
-- dryness
-- scaling
-- lichenification
-- skin thickness
-- background
-- lighting
-- normal skin pigmentation
-
-Score criteria for redness:
-0 = no redness
-1 = mild faint redness
-2 = moderate obvious redness
-3 = severe intense redness
 
 Respond STRICTLY with a valid JSON object only. Do NOT include markdown code blocks, extra text, or explanations.
 Example output format:
