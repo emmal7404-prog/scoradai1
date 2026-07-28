@@ -6,7 +6,7 @@ import ollama
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
-# Update this to match your local dataset folder path
+# Update this path if your dataset location changes
 INPUT_FOLDER = r"C:\Users\codin\Downloads\archive (1)\kaggle\train\2. Ekzama"
 
 # Output folder for sorted Teachable Machine classes
@@ -15,7 +15,7 @@ OUTPUT_FOLDER = "./teachable_machine_dataset"
 # Ollama vision model
 MODEL_NAME = "llama3.2-vision"
 
-# System Prompt with strict Erythema (Redness) rules
+# System Prompt with SCORAD rules
 PROMPT = """
 You are an expert dermatological vision classifier. Analyze this skin image for all 6 SCORAD intensity factors.
 Grade each factor on a scale from 0 (absent/none) to 3 (severe):
@@ -25,7 +25,6 @@ Grade each factor on a scale from 0 (absent/none) to 3 (severe):
 - scratch_marks
 - skin_thickening
 - dryness
-
 
 Respond STRICTLY with a valid JSON object only. Do NOT include markdown code blocks, extra text, or explanations.
 Example output format:
@@ -61,6 +60,26 @@ def process_images():
 
     for index, filename in enumerate(image_files, 1):
         filepath = os.path.join(INPUT_FOLDER, filename)
+
+        # ---------------------------------------------------------------------
+        # ⏩ SKIP CHECK: See if image was already sorted in a previous run
+        # ---------------------------------------------------------------------
+        already_processed = False
+        for sev in range(4):
+            check_path = os.path.join(
+                OUTPUT_FOLDER, "redness", f"severity_{sev}", filename
+            )
+            if os.path.exists(check_path):
+                already_processed = True
+                break
+
+        if already_processed:
+            print(
+                f"[{index}/{total_files}] ⏩ Skipping {filename} (Already sorted)"
+            )
+            continue
+        # ---------------------------------------------------------------------
+
         print(f"[{index}/{total_files}] Processing: {filename}...")
 
         try:
