@@ -1,54 +1,145 @@
-# # LIBRARIES 
-# # Image processing / computer vision
-# import cv2
-# from PIL import Image
+import cv2
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+#-------- Severity models
+import numpy as np
+import tf_keras as keras
+import tensorflow as tf
+from PIL import Image, ImageOps
+import statistics
 
-# # Numerical calculations
-# import numpy as np
+class FixedDepthwiseConv2D(keras.layers.DepthwiseConv2D):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("groups", None)
+        super().__init__(*args, **kwargs) 
 
-# # Data handling
-# import pandas as pd
+# area calculator --------------------------------------------------------------------------------
+image_parts = []
+image_scan = []
+total_area = []
 
-# # Machine learning
-# import tensorflow as tf
-# from tensorflow import keras
+def process_img(img_path):
+    # Open the new image
+    image = Image.open(img_path).convert("RGB")
 
-# # Dataset splitting and model evaluation
-# from sklearn.model_selection import train_test_split
-# from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+    # Resize and crop the image to 224 x 224
+    image = ImageOps.fit(image, (224, 224), Image.Resampling.LANCZOS)
 
-# # Image augmentation (for increasing training data)
-# import albumentations as A
+    # Convert the image into a NumPy array
+    image_array = np.asarray(image)
 
-# # File and folder management
-# import os
-# from pathlib import Path
+    # Normalize pixel values from 0–255 to -1–1
+    normalized_image = (image_array.astype(np.float32) / 127.5) - 1
 
-# # Visualization
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# -----------------------------------------------------------------------
+    return normalized_image
 
-# img = (User inputs photo)
-#Likelihood of bodypart:
-    # Calculate body part likelihood of photo
-    # Confirm w/ user (Y/N)
-    # if Y:
-        #run follow up
-    # if N: 
-        #ask user which body part
-        #run follow up
-#follow up:
-    #Any other photos?
-        #if Y:
-             #run Area
-        #if N:
-            #move onto Intensity 
+def bdy_part(): #step 3
+    image_scan.clear()  
+    for i, _ in enumerate(image_parts, start=1):
+        image_scan.append(f"Image {i}")
+        print (f"Image {i}", ":")
+        x = int(input ("What is the body part?\n1.Head and neck \n2.Upper limb \n3.Lower limbs \n4.Anterior trunk \n5.Back \n6.Genitals\n"))
+        if x == 1:
+            total_area.append(9)
+        elif x == 2:
+            total_area.append(9)
+        elif x == 3:
+            total_area.append(18)
+        elif x == 4:
+            total_area.append(18)
+        elif x == 5:
+            total_area.append(18)
+        elif x == 6:
+            total_area.append(1)
+        else:
+            print ("Try again")
 
-def user_input():
-    image_path = []
+def follow_up(): #step 2
+    add_img = input ("Do you have any other affected areas? (Y/N)")
+    if add_img == "Y":
+        user_input()
+    if add_img == "N":
+       bdy_part()
+
+def user_input(): #step 1
     image = input ("Please insert an image of your affected area: ")
-    image_path.append (image)
-    print (image_path)
-    return image_path
+    image_parts.append (image)
+    follow_up()
+    return image_parts
 user_input()
+
+A_total = sum (total_area)
+
+# Severity calculator -------------------------------------------------------------------------
+model_paths = ["dryness.h5","oozing_crusting.h5", "redness.h5","scratch_marks.h5","skin_thickening.h5","swelling.h5"]
+labels_path = ["drynesslabels.txt","oozing_crustinglabels.txt","rednesslabels.txt","scratch_marks.txt","skin_thickening.txt","swelling.txt"]
+factors=[]
+
+for ind, img_path in enumerate(image_parts):
+    data = np.ndarray(
+        shape=(1, 224, 224, 3),
+        dtype=np.float32
+    )
+
+    normalized_image = process_img(img_path)
+
+    # Put the image into the input array
+    data[0] = normalized_image
+
+    #print("Image:", "test_image.jpg")
+    factors.append(0)
+
+    for i in range(len(model_paths)):
+    # Load the model
+        model = keras.models.load_model(
+            model_paths[i],
+            compile=False
+        )
+
+        # Load the class names
+        with open(labels_path[i], "r") as file:
+            class_names = file.readlines()
+
+        # Ask the model to make a prediction
+        prediction = model.predict(data, verbose=0)
+
+        # Find the class with the highest confidence
+        class_index = np.argmax(prediction[0])
+        class_name = class_names[class_index].strip()
+        confidence = prediction[0][class_index]
+        factors[ind] += class_index
+        print("=" * 40)
+        print ("Image", img_path)
+        print(model_paths[i].strip(".h5").upper(), "CLASSIFICATION")
+        print("=" * 40)
+        
+        print("Prediction:", class_name)
+        print("Confidence:", f"{confidence * 100:.2f}%")
+        #for i, _ in enumerate(image_parts, start=1):
+        # Load the model
+
+    
+
+    
+#get the average factor per image, choose the image closest to the average as rep
+
+ave_fac = statistics.mode(factors)
+B_total = ave_fac
+print (B_total)
+# Questions -------------------------------------------------------------------------------------
+sleep = int(input ("Rate overall sleepiness on a scale of 1-10"))
+itchiness = int(input ("Rate overall itchiness on a scale of 1-10"))
+C_total = sleep + itchiness
+
+# Final results 
+score = A_total/5 + 7*(B_total)/2 + C_total
+print ("This is your SCORAD score", score)
+if score <= 25:
+    print ("Mild status")
+elif 26<=score<=50:
+    print ("Moderate status")
+elif score > 50:
+    print ("Severe Status") 
+    print ("Specialist visit recommend")
+
