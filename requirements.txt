@@ -1,9 +1,7 @@
 streamlit
-tensorflow
-tf-keras
+tensorflow-cpu
 mediapipe
 pillow
-numpy
+numpy<2.0.0
 pandas
 matplotlib
-opencv-python-headless
