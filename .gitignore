@@ -1,0 +1,6 @@
+*.zip
+.venv/
+venv/
+_pycache_/
+.DS_Store
+.venv/
