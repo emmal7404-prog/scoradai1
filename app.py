@@ -112,8 +112,7 @@ model_paths = ["dryness.h5","oozing_crusting.h5", "redness.h5","scratch_marks.h5
 labels_path = ["drynesslabels.txt","oozing_crustinglabels.txt","rednesslabels.txt","scratch_marks.txt","skin_thickening.txt","swelling.txt"]
 factors=[]
 if st.button("Submit", type="primary"):
-    B_total = statistics.mode(factors) if factors else 0 
-    final(A_total, B_total)
+   
     for ind,uploaded_file in enumerate(image_parts):
         
         st.write ("File: ", uploaded_file) 
@@ -167,7 +166,8 @@ if st.button("Submit", type="primary"):
             # else:
             #     st.caption("Severity: None")
             st.caption(f"Confidence: {confidence * 100:.2f}%")
-        
+B_total = statistics.mode(factors) if factors else 0 
+final(A_total, B_total)
         #for i, _ in enumerate(image_parts, start=1):
         # Load the model
 
